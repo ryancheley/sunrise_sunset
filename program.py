@@ -19,6 +19,14 @@ def main(city, state):
     table = soup.find('pre')
     data = table.text.replace('\n', ' ').replace('  ', ' ').replace('       ','   ').split(' ')
 
+    get_long_lat = (data.index('Location:'))
+
+    sort_name = ['_'.join(data[get_long_lat+3:get_long_lat+5])][0]
+
+    find_rise = data.index('Rise')
+
+    data = data[find_rise:]
+
     row_01 = data.index('01')
     row_29 = data.index('29')
     row_30 = data.index('30')
@@ -66,25 +74,28 @@ def main(city, state):
     lengths = np.array(sets) - np.array(rises)
 
     # Get the portion of the year that uses CDT
-    cdtStart = days.index(datetime(2018, 3, 11))
-    cstStart = days.index(datetime(2018, 11, 4))
-    cdtdays = days[cdtStart:cstStart]
-    cstrises = rises[cdtStart:cstStart]
-    cdtrises = [x + 1 for x in cstrises]
-    cstsets = sets[cdtStart:cstStart]
-    cdtsets = [x + 1 for x in cstsets]
+    if state != 'AZ':
+        cdtStart = days.index(datetime(2018, 3, 11))
+        cstStart = days.index(datetime(2018, 11, 4))
+        cdtdays = days[cdtStart:cstStart]
+        cstrises = rises[cdtStart:cstStart]
+        cdtrises = [x + 1 for x in cstrises]
+        cstsets = sets[cdtStart:cstStart]
+        cdtsets = [x + 1 for x in cstsets]
 
     # Plot the data
     fig, ax = plt.subplots(figsize=(10, 6))
     plt.fill_between(days, rises, sets, facecolor='yellow', alpha=.5)
     plt.fill_between(days, 0, rises, facecolor='black', alpha=.25)
     plt.fill_between(days, sets, 24, facecolor='black', alpha=.25)
-    plt.fill_between(cdtdays, cstsets, cdtsets, facecolor='yellow', alpha=.5)
-    plt.fill_between(cdtdays, cdtrises, cstrises, facecolor='black', alpha=.1)
+    if state != 'AZ':
+        plt.fill_between(cdtdays, cstsets, cdtsets, facecolor='yellow', alpha=.5)
+        plt.fill_between(cdtdays, cdtrises, cstrises, facecolor='black', alpha=.1)
     plt.plot(days, rises, color='k')
     plt.plot(days, sets, color='k')
-    plt.plot(cdtdays, cdtrises, color='k')
-    plt.plot(cdtdays, cdtsets, color='k')
+    if state != 'AZ':
+        plt.plot(cdtdays, cdtrises, color='k')
+        plt.plot(cdtdays, cdtsets, color='k')
     plt.plot(days, lengths, color='#aa00aa', linestyle='--', lw=2)
     plt.title('{}, {}'.format(city, state))
 
@@ -116,11 +127,11 @@ def main(city, state):
 
     # Tighten up the white border and save
     fig.set_tight_layout({'pad': 1.5})
-    plt.savefig('{}_{}_rise_set_chart.png'.format(city, state), format='png', dpi=150)
+    plt.savefig('{}_{}_{}_rise_set_chart.png'.format(sort_name, city, state), format='png', dpi=150)
 
 
 if __name__ == '__main__':
-    main('Chandler', 'AZ')
+    main('Portland', 'OR')
 
 '''
     Eugene, OR [X]
